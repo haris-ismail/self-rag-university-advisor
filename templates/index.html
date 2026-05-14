@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XYZ National University — Course Advisory Agent</title>
+  <style>
+    /* ── Reset & base ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --surface2:  #22263a;
+      --border:    #2e3350;
+      --accent:    #4f8ef7;
+      --accent2:   #7c5cbf;
+      --green:     #22c55e;
+      --yellow:    #f59e0b;
+      --red:       #ef4444;
+      --text:      #e2e8f0;
+      --muted:     #8892a4;
+      --radius:    12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ────────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #1a1d27 0%, #22263a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+
+    .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 700; color: white;
+      flex-shrink: 0;
+    }
+
+    .header-text h1 {
+      font-size: 15px; font-weight: 600; color: var(--text);
+      letter-spacing: 0.01em;
+    }
+    .header-text p {
+      font-size: 12px; color: var(--muted); margin-top: 1px;
+    }
+
+    .status-pill {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 6px;
+      background: #0f1a0f;
+      border: 1px solid #166534;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px; color: var(--green);
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    /* ── Main layout ───────────────────────────────────────────── */
+    main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ───────────────────────────────────────────────── */
+    .sidebar {
+      width: 240px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 16px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar h3 {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .suggestion {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-size: 12px;
+      color: var(--text);
+      cursor: pointer;
+      margin-bottom: 6px;
+      line-height: 1.4;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .suggestion:hover {
+      border-color: var(--accent);
+      background: #1e2438;
+    }
+
+    .sidebar-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 14px 0;
+    }
+
+    /* Pipeline legend */
+    .legend-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .legend-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    /* ── Chat area ─────────────────────────────────────────────── */
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Welcome screen */
+    .welcome {
+      margin: auto;
+      text-align: center;
+      max-width: 440px;
+    }
+    .welcome-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .welcome h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .welcome p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── Message bubbles ───────────────────────────────────────── */
+    .msg-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .msg-row.user { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .avatar.user-av {
+      background: linear-gradient(135deg, var(--accent2), #5b4ea0);
+      color: white;
+    }
+    .avatar.bot-av {
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: white;
+    }
+
+    .msg-body { max-width: 72%; display: flex; flex-direction: column; gap: 6px; }
+    .msg-row.user .msg-body { align-items: flex-end; }
+
+    .bubble {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .bubble.user-bubble {
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: white;
+      border-bottom-right-radius: 3px;
+    }
+    .bubble.bot-bubble {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-bottom-left-radius: 3px;
+    }
+    .bubble.error-bubble {
+      background: #1a0f0f;
+      border: 1px solid #7f1d1d;
+      color: #fca5a5;
+    }
+
+    /* ── Pipeline badges ───────────────────────────────────────── */
+    .pipeline-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-direct   { background: #1e3a1e; color: var(--green); border: 1px solid #166534; }
+    .badge-retrieve { background: #1e2d3a; color: var(--accent); border: 1px solid #1d4ed8; }
+    .badge-web      { background: #2d2a1e; color: var(--yellow); border: 1px solid #92400e; }
+    .badge-retry    { background: #2d1e1e; color: var(--red);    border: 1px solid #991b1b; }
+    .badge-grounded { background: #1e3a1e; color: var(--green); border: 1px solid #166534; }
+
+    /* ── Trace accordion ───────────────────────────────────────── */
+    .trace-toggle {
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      display: flex; align-items: center; gap: 4px;
+      transition: color 0.15s;
+    }
+    .trace-toggle:hover { color: var(--accent); }
+
+    .trace-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 11px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      color: var(--muted);
+      line-height: 1.8;
+      display: none;
+    }
+    .trace-box.open { display: block; }
+    .trace-step { color: var(--text); }
+    .trace-step span { color: var(--accent); }
+
+    /* ── Typing indicator ──────────────────────────────────────── */
+    .typing-row { display: flex; gap: 12px; align-items: center; }
+    .typing-bubble {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      border-bottom-left-radius: 3px;
+      padding: 12px 16px;
+      display: flex; gap: 5px; align-items: center;
+    }
+    .dot {
+      width: 7px; height: 7px;
+      background: var(--muted);
+      border-radius: 50%;
+      animation: bounce 1.2s ease-in-out infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40%            { transform: translateY(-6px); }
+    }
+
+    /* ── Input bar ─────────────────────────────────────────────── */
+    .input-bar {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 16px 24px;
+      flex-shrink: 0;
+    }
+
+    .input-wrap {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      transition: border-color 0.15s;
+    }
+    .input-wrap:focus-within { border-color: var(--accent); }
+
+    #userInput {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 14px;
+      resize: none;
+      line-height: 1.5;
+      max-height: 120px;
+      min-height: 22px;
+      font-family: inherit;
+    }
+    #userInput::placeholder { color: var(--muted); }
+
+    #sendBtn {
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      border: none;
+      border-radius: 8px;
+      width: 36px; height: 36px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    #sendBtn:hover { opacity: 0.85; transform: scale(1.05); }
+    #sendBtn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    #sendBtn svg { width: 16px; height: 16px; fill: white; }
+
+    .hint { font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center; }
+
+    /* ── Stats strip ───────────────────────────────────────────── */
+    .stats-strip {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      font-size: 11px; color: var(--muted);
+    }
+    .stat { display: flex; align-items: center; gap: 4px; }
+    .stat-val { color: var(--text); font-weight: 600; }
+
+    /* ── Scrollbar ─────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────── -->
+<header>
+  <div class="logo">XU</div>
+  <div class="header-text">
+    <h1>XYZ National University — Course Advisory Agent</h1>
+    <p>Self-RAG · LangGraph · Mistral AI · FAISS</p>
+  </div>
+  <div class="status-pill">
+    <div class="status-dot"></div>
+    Online
+  </div>
+</header>
+
+<main>
+  <!-- ── Sidebar ────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <h3>Suggested Questions</h3>
+
+    <div class="suggestion" onclick="ask(this)">What are the prerequisites for the Machine Learning course?</div>
+    <div class="suggestion" onclick="ask(this)">What courses does the EE department offer?</div>
+    <div class="suggestion" onclick="ask(this)">What is the GPA requirement to stay in good academic standing?</div>
+    <div class="suggestion" onclick="ask(this)">Who are the faculty members in the CS department and where are their offices?</div>
+    <div class="suggestion" onclick="ask(this)">What are the tuition fees for the BBA program?</div>
+    <div class="suggestion" onclick="ask(this)">What is the withdrawal policy for courses?</div>
+    <div class="suggestion" onclick="ask(this)">Hello! What can you help me with?</div>
+
+    <hr class="sidebar-divider" />
+    <h3>Pipeline Legend</h3>
+    <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>Direct answer — no retrieval</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4f8ef7"></div>Retrieved from knowledge base</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Web search fallback</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Hallucination retry triggered</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>Response grounded &amp; verified</div>
+
+    <hr class="sidebar-divider" />
+    <h3>Knowledge Base</h3>
+    <div style="font-size:11px; color:var(--muted); line-height:1.8">
+      CS Department Catalog<br>
+      EE Department Catalog<br>
+      BBA Department Catalog<br>
+      Academic Policies<br>
+      Faculty Directory
+    </div>
+  </aside>
+
+  <!-- ── Chat ───────────────────────────────────────────────────── -->
+  <div class="chat-container">
+    <div id="messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">&#127979;</div>
+        <h2>Course Advisory Agent</h2>
+        <p>Ask me anything about courses, prerequisites, departments, faculty, fees, or academic policies at XYZ National University.</p>
+      </div>
+    </div>
+
+    <div class="input-bar">
+      <div class="input-wrap">
+        <textarea id="userInput" rows="1" placeholder="Ask about courses, prerequisites, faculty, policies..."></textarea>
+        <button id="sendBtn" onclick="sendMessage()" title="Send">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="hint">Press Enter to send &nbsp;·&nbsp; Shift+Enter for new line</div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const messagesEl = document.getElementById('messages');
+  const inputEl    = document.getElementById('userInput');
+  const sendBtn    = document.getElementById('sendBtn');
+
+  // Auto-resize textarea
+  inputEl.addEventListener('input', () => {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+  });
+
+  // Enter to send, Shift+Enter for newline
+  inputEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  function ask(el) {
+    inputEl.value = el.textContent.trim();
+    inputEl.dispatchEvent(new Event('input'));
+    sendMessage();
+  }
+
+  function removeWelcome() {
+    const w = document.getElementById('welcome');
+    if (w) w.remove();
+  }
+
+  function scrollBottom() {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function appendUserBubble(text) {
+    removeWelcome();
+    const row = document.createElement('div');
+    row.className = 'msg-row user';
+    row.innerHTML = `
+      <div class="avatar user-av">U</div>
+      <div class="msg-body">
+        <div class="bubble user-bubble">${escHtml(text)}</div>
+      </div>`;
+    messagesEl.appendChild(row);
+    scrollBottom();
+  }
+
+  function appendTyping() {
+    const row = document.createElement('div');
+    row.className = 'typing-row';
+    row.id = 'typing';
+    row.innerHTML = `
+      <div class="avatar bot-av">AI</div>
+      <div class="typing-bubble">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>`;
+    messagesEl.appendChild(row);
+    scrollBottom();
+    return row;
+  }
+
+  function removeTyping() {
+    const t = document.getElementById('typing');
+    if (t) t.remove();
+  }
+
+  function buildBadges(stats) {
+    const badges = [];
+    if (!stats.needs_retrieval) {
+      badges.push('<span class="badge badge-direct">Direct</span>');
+    } else {
+      badges.push(`<span class="badge badge-retrieve">Retrieved ${stats.retrieved_count} chunks (${stats.relevant_count} relevant)</span>`);
+    }
+    if (stats.web_search_used) badges.push('<span class="badge badge-web">Web Search</span>');
+    if (stats.retry_count > 0)  badges.push(`<span class="badge badge-retry">Retried x${stats.retry_count}</span>`);
+    badges.push('<span class="badge badge-grounded">Grounded</span>');
+    return badges.join('');
+  }
+
+  function buildTrace(trace) {
+    if (!trace || trace.length === 0) return '<em>No trace.</em>';
+    return trace.map((step, i) => {
+      const safe = escHtml(step);
+      // Colour the bracketed tags
+      const coloured = safe.replace(/\[([^\]]+)\]/g, '<span>[$1]</span>');
+      return `<div class="trace-step">${i + 1}. ${coloured}</div>`;
+    }).join('');
+  }
+
+  function appendBotBubble(data) {
+    const { response, trace, stats } = data;
+    const id = 'trace-' + Date.now();
+
+    const row = document.createElement('div');
+    row.className = 'msg-row';
+    row.innerHTML = `
+      <div class="avatar bot-av">AI</div>
+      <div class="msg-body">
+        <div class="pipeline-row">${buildBadges(stats)}</div>
+        <div class="bubble bot-bubble">${escHtml(response)}</div>
+        <div class="stats-strip">
+          <span class="stat">Retrieval: <span class="stat-val">${stats.needs_retrieval ? 'Yes' : 'No'}</span></span>
+          <span class="stat">Web: <span class="stat-val">${stats.web_search_used ? 'Yes' : 'No'}</span></span>
+          <span class="stat">Retries: <span class="stat-val">${stats.retry_count}</span></span>
+        </div>
+        <button class="trace-toggle" onclick="toggleTrace('${id}')">
+          &#9654; Decision trace (${trace.length} steps)
+        </button>
+        <div class="trace-box" id="${id}">${buildTrace(trace)}</div>
+      </div>`;
+    messagesEl.appendChild(row);
+    scrollBottom();
+  }
+
+  function appendErrorBubble(msg) {
+    const row = document.createElement('div');
+    row.className = 'msg-row';
+    row.innerHTML = `
+      <div class="avatar bot-av">AI</div>
+      <div class="msg-body">
+        <div class="bubble error-bubble">Error: ${escHtml(msg)}</div>
+      </div>`;
+    messagesEl.appendChild(row);
+    scrollBottom();
+  }
+
+  function toggleTrace(id) {
+    const box = document.getElementById(id);
+    const btn = box.previousElementSibling;
+    box.classList.toggle('open');
+    btn.textContent = box.classList.contains('open')
+      ? btn.textContent.replace('▶', '▼')
+      : btn.textContent.replace('▼', '▶');
+    // Re-set icon properly
+    btn.innerHTML = (box.classList.contains('open') ? '&#9660;' : '&#9654;') +
+      btn.innerHTML.replace(/^[^D]*/, ' ');
+  }
+
+  async function sendMessage() {
+    const query = inputEl.value.trim();
+    if (!query) return;
+
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    sendBtn.disabled = true;
+
+    appendUserBubble(query);
+    const typingEl = appendTyping();
+
+    try {
+      const res  = await fetch('/api/query', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ query }),
+      });
+      const data = await res.json();
+      removeTyping();
+
+      if (!res.ok || data.error) {
+        appendErrorBubble(data.error || `HTTP ${res.status}`);
+      } else {
+        appendBotBubble(data);
+      }
+    } catch (err) {
+      removeTyping();
+      appendErrorBubble('Network error — is the server running?');
+    } finally {
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+</script>
+</body>
+</html>

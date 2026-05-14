@@ -1,0 +1,16 @@
+# Part B — Self-RAG University Course Advisory Agent
+# These packages are already installed in the main environment.
+# Run: pip install -r requirements_partb.txt
+# Extra package required (not in base env):
+#   pip install duckduckgo-search
+
+langchain>=1.2.10
+langgraph>=1.0.10
+langchain-community>=0.4.1
+langchain-google-genai>=4.2.1
+langchain-text-splitters>=1.1.1
+chromadb>=1.5.5
+pypdf>=6.8.0
+pydantic>=2.12.5
+python-dotenv>=1.2.0
+duckduckgo-search>=6.0.0
